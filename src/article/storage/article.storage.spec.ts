@@ -10,6 +10,8 @@ import { SearchArticlesConfig } from '../types/search.articles.config';
 import { CreateArticleConfig } from '../types/create.article.config';
 import { UpdateArticleConfig } from '../types/update.article.config';
 import { dataSourceOptions } from '@typeorm/data.source';
+import { RedisModule } from 'src/redis/redis.module';
+import { RedisService } from 'src/redis/service/redis.service';
 
 describe('ArticleStorage (Integration)', () => {
   let articleStorage: ArticleStorage;
@@ -31,9 +33,17 @@ describe('ArticleStorage (Integration)', () => {
           logging: false,
         }),
         TypeOrmModule.forFeature([UserEntity, ArticleEntity]),
+        RedisModule,
       ],
       providers: [ArticleStorage],
-    }).compile();
+    })
+      .overrideProvider(RedisService)
+      .useValue({
+        getObjectById: jest.fn().mockResolvedValue(null),
+        setObject: jest.fn().mockResolvedValue(undefined),
+        deleteObject: jest.fn().mockResolvedValue(undefined),
+      })
+      .compile();
 
     articleStorage = module.get<ArticleStorage>(ArticleStorage);
     articleRepository = module.get<Repository<ArticleEntity>>(
@@ -42,8 +52,6 @@ describe('ArticleStorage (Integration)', () => {
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
-
-
   }, 15000);
 
   afterAll(async () => {
@@ -51,7 +59,6 @@ describe('ArticleStorage (Integration)', () => {
   });
 
   beforeEach(async () => {
-
     const testUserEntity = userRepository.create({
       id: userId,
       name: 'Jim Raynor',
@@ -61,7 +68,6 @@ describe('ArticleStorage (Integration)', () => {
       salt: 'salt_value',
     });
     await userRepository.save(testUserEntity);
-
 
     const testArticleEntity = articleRepository.create({
       id: articleId,
@@ -185,14 +191,16 @@ describe('ArticleStorage (Integration)', () => {
         limit: 100,
         offset: 0,
       };
-      const allArticles = await articleStorage.searchArticles(allArticlesConfig);
+      const allArticles =
+        await articleStorage.searchArticles(allArticlesConfig);
 
       if (allArticles.length > 1) {
         const offsetConfig: SearchArticlesConfig = {
           limit: 99,
           offset: 1,
         };
-        const offsetArticles = await articleStorage.searchArticles(offsetConfig);
+        const offsetArticles =
+          await articleStorage.searchArticles(offsetConfig);
 
         expect(offsetArticles.length).toBe(allArticles.length - 1);
 
@@ -252,7 +260,6 @@ describe('ArticleStorage (Integration)', () => {
       const config: SearchArticlesConfig = {
         limit: 10,
         offset: 0,
-
       };
 
       const result = await articleStorage.searchArticles(config);
@@ -261,7 +268,7 @@ describe('ArticleStorage (Integration)', () => {
         expect(article.access).toBe(AccessEnum.PUBLIC);
       });
 
-      expect(result.find(a => a.id === privateArticleId)).toBeUndefined();
+      expect(result.find((a) => a.id === privateArticleId)).toBeUndefined();
 
       await articleRepository.delete(privateArticleId);
     });
@@ -287,7 +294,9 @@ describe('ArticleStorage (Integration)', () => {
 
       const result = await articleStorage.searchArticles(config);
 
-      const privateArticleResult = result.find(a => a.id === privateArticleId);
+      const privateArticleResult = result.find(
+        (a) => a.id === privateArticleId,
+      );
       expect(privateArticleResult).toBeDefined();
       expect(privateArticleResult.access).toBe(AccessEnum.PRIVATE);
       expect(privateArticleResult.userId).toBe(userId);
@@ -306,7 +315,6 @@ describe('ArticleStorage (Integration)', () => {
         salt: 'salt',
       });
       await userRepository.save(otherUser);
-
 
       const otherPrivateArticleId = uuidv7();
       const otherPrivateArticle = articleRepository.create({
@@ -328,7 +336,9 @@ describe('ArticleStorage (Integration)', () => {
 
       const result = await articleStorage.searchArticles(config);
 
-      const otherPrivateArticleResult = result.find(a => a.id === otherPrivateArticleId);
+      const otherPrivateArticleResult = result.find(
+        (a) => a.id === otherPrivateArticleId,
+      );
       expect(otherPrivateArticleResult).toBeUndefined();
 
       await articleRepository.delete(otherPrivateArticleId);
@@ -413,7 +423,9 @@ describe('ArticleStorage (Integration)', () => {
       expect(result.access).toBe(AccessEnum.PUBLIC);
       expect(result.active).toBeTruthy();
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.header).toBe('Updated Article Header');
     });
 
@@ -428,7 +440,9 @@ describe('ArticleStorage (Integration)', () => {
       expect(result.id).toBe(articleId);
       expect(result.active).toBeFalsy();
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.active).toBeFalsy();
     });
 
@@ -443,7 +457,9 @@ describe('ArticleStorage (Integration)', () => {
       expect(result.id).toBe(articleId);
       expect(result.content).toBe('Updated content');
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.content).toBe('Updated content');
     });
 
@@ -458,7 +474,9 @@ describe('ArticleStorage (Integration)', () => {
       expect(result.id).toBe(articleId);
       expect(result.tags).toEqual(['updated', 'tags']);
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.tags).toEqual(['updated', 'tags']);
     });
 
@@ -473,7 +491,9 @@ describe('ArticleStorage (Integration)', () => {
       expect(result.id).toBe(articleId);
       expect(result.access).toBe(AccessEnum.PRIVATE);
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.access).toBe(AccessEnum.PRIVATE);
     });
 
@@ -496,7 +516,9 @@ describe('ArticleStorage (Integration)', () => {
       expect(result.tags).toEqual(['multi', 'update']);
       expect(result.access).toBe(AccessEnum.RESTRICTED);
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.header).toBe('Multi Updated Article');
       expect(rawArticle.content).toBe('Multi updated content');
       expect(rawArticle.active).toBeFalsy();
@@ -518,7 +540,9 @@ describe('ArticleStorage (Integration)', () => {
       expect(result.access).toBe(AccessEnum.PUBLIC);
       expect(result.active).toBeTruthy();
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.header).toBe('Test Article');
       expect(rawArticle.content).toBe('This is a test article content');
       expect(rawArticle.tags).toEqual(['test', 'article']);
@@ -567,7 +591,9 @@ describe('ArticleStorage (Integration)', () => {
 
       expect(result.content).toBe('This is a test article content');
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.content).toBe('This is a test article content');
     });
 
@@ -581,7 +607,9 @@ describe('ArticleStorage (Integration)', () => {
 
       expect(result.content).toBeNull();
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.content).toBeNull();
     });
 
@@ -595,7 +623,9 @@ describe('ArticleStorage (Integration)', () => {
 
       expect(result.tags).toEqual(['test', 'article']);
 
-      const rawArticle = await articleRepository.findOne({ where: { id: articleId } });
+      const rawArticle = await articleRepository.findOne({
+        where: { id: articleId },
+      });
       expect(rawArticle.tags).toEqual(['test', 'article']);
     });
   });
@@ -614,22 +644,26 @@ describe('ArticleStorage (Integration)', () => {
       });
       await articleRepository.save(deleteArticle);
 
-
-      const beforeDelete = await articleRepository.findOne({ where: { id: deleteArticleId } });
+      const beforeDelete = await articleRepository.findOne({
+        where: { id: deleteArticleId },
+      });
       expect(beforeDelete).toBeDefined();
 
+      const result = await articleStorage.deleteArticle(deleteArticleId);
+      expect(result).toEqual({ id: deleteArticleId });
 
-      await articleStorage.deleteArticle(deleteArticleId);
-
-
-      const afterDelete = await articleRepository.findOne({ where: { id: deleteArticleId } });
+      const afterDelete = await articleRepository.findOne({
+        where: { id: deleteArticleId },
+      });
       expect(afterDelete).toBeNull();
     });
 
     it('should not throw error when deleting non-existent article', async () => {
       const nonExistentArticleId = uuidv7();
 
-      await expect(articleStorage.deleteArticle(nonExistentArticleId)).resolves.not.toThrow();
+      await expect(
+        articleStorage.deleteArticle(nonExistentArticleId),
+      ).resolves.not.toThrow();
     });
   });
 });

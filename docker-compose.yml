@@ -21,6 +21,22 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: knowledge_base_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - knowledge_base_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
 
   api:
     build:
@@ -35,11 +51,16 @@ services:
       dbUsername: postgres
       dbPassword: postgres
       dbDatabase: knowledge_base
+      redisHost: redis
+      redisPort: 6379
+      redisTls: false
       port: 3000
     ports:
       - "3000:3000"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - knowledge_base_network
@@ -60,9 +81,14 @@ services:
       dbUsername: postgres
       dbPassword: postgres
       dbDatabase: knowledge_base
+      redisHost: redis
+      redisPort: 6379
+      redisTls: false
     command: ["npx", "typeorm", "migration:run", "-d", "dist/typeorm/data.source.js"]
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - knowledge_base_network
@@ -72,6 +98,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:

@@ -26,6 +26,6 @@ export class ArticleService {
   }
 
   async deleteArticle(articleId: string): Promise<void> {
-    return this.articleStorage.deleteArticle(articleId);
+    await this.articleStorage.deleteArticle(articleId);
   }
 }

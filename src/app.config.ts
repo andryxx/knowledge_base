@@ -12,6 +12,11 @@ export const appConfig = {
     PASSWORD: env.get('dbPassword').default('postgres').asString(),
     DATABASE: env.get('dbDatabase').default('kb_db').asString(),
   },
+  REDIS: {
+    HOST: env.get('redisHost').default('').asString(),
+    PORT: env.get('redisPort').default(6379).asPortNumber(),
+    TLS: env.get('redisTls').default('true').asBool(),
+  },
   ENV: env.get('env').default('dev').asString(),
   JWT_SECRET: env.get('jwtSecret').default('some_secret').asString(),
   JWT_TTL: env.get('jwtTTL').default(60 * 60 * 24).asInt(),

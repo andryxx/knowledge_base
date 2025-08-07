@@ -7,6 +7,9 @@ import { UpdateUserConfig } from '../types/update.user.config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { UserEntity } from '@typeorm/models/user.entity';
+import { RedisService } from 'src/redis/service/redis.service';
+import { GetFromCacheById } from 'src/redis/decorators/get.from.cache.by.id.decorator';
+import { DeleteFromCache } from 'src/redis/decorators/delete.from.cache.decorator';
 
 @Injectable()
 export class UserStorage {
@@ -15,6 +18,7 @@ export class UserStorage {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly redisService: RedisService,
   ) {}
 
   async searchUsers(config: SearchUsersConfig): Promise<UserDto[]> {
@@ -40,6 +44,7 @@ export class UserStorage {
     return users.map((user) => new UserDto(user));
   }
 
+  @GetFromCacheById(UserDto)
   async getUserById(userId: string): Promise<UserDto> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -90,6 +95,7 @@ export class UserStorage {
     return new UserDto(user);
   }
 
+  @DeleteFromCache()
   async updateUser(updateUserConfig: UpdateUserConfig): Promise<UserDto> {
     const { userId, name, active, hash, salt } = updateUserConfig;
 

@@ -4,8 +4,11 @@ import { ArticleDto } from '../types/article.dto';
 import { UpdateArticleConfig } from '../types/update.article.config';
 import { SearchArticlesConfig } from '../types/search.articles.config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository, ArrayOverlap, Not, Raw } from 'typeorm';
+import { ILike, Repository, ArrayOverlap, Not } from 'typeorm';
 import { ArticleEntity } from '@typeorm/models/article.entity';
+import { GetFromCacheById } from 'src/redis/decorators/get.from.cache.by.id.decorator';
+import { DeleteFromCache } from 'src/redis/decorators/delete.from.cache.decorator';
+import { RedisService } from 'src/redis/service/redis.service';
 
 @Injectable()
 export class ArticleStorage {
@@ -14,6 +17,7 @@ export class ArticleStorage {
   constructor(
     @InjectRepository(ArticleEntity)
     private readonly articleRepository: Repository<ArticleEntity>,
+    private readonly redisService: RedisService,
   ) {}
 
   async createArticle(config: CreateArticleConfig): Promise<ArticleDto> {
@@ -22,6 +26,7 @@ export class ArticleStorage {
     return new ArticleDto(savedArticle);
   }
 
+  @GetFromCacheById(ArticleDto)
   async getArticleById(articleId: string): Promise<ArticleDto> {
     const article = await this.articleRepository.findOne({
       where: { id: articleId },
@@ -83,6 +88,7 @@ export class ArticleStorage {
     return articles.map((article) => new ArticleDto(article));
   }
 
+  @DeleteFromCache()
   async updateArticle(config: UpdateArticleConfig): Promise<ArticleDto> {
     const { articleId, active, header, content, tags, access } = config;
 
@@ -109,7 +115,9 @@ export class ArticleStorage {
     return new ArticleDto(updatedArticle);
   }
 
-  async deleteArticle(articleId: string): Promise<void> {
+  @DeleteFromCache()
+  async deleteArticle(articleId: string): Promise<{ id: string }> {
     await this.articleRepository.delete({ id: articleId });
+    return { id: articleId };
   }
 }

@@ -11,6 +11,8 @@ import { SearchUsersConfig } from '../types/search.users.config';
 import { CreateUserConfig } from '../types/create.user.config';
 import { UpdateUserConfig } from '../types/update.user.config';
 import { dataSourceOptions } from '@typeorm/data.source';
+import { RedisModule } from 'src/redis/redis.module';
+import { RedisService } from 'src/redis/service/redis.service';
 
 describe('UserStorage (Integration)', () => {
   let userStorage: UserStorage;
@@ -30,9 +32,17 @@ describe('UserStorage (Integration)', () => {
           logging: false,
         }),
         TypeOrmModule.forFeature([UserEntity, ArticleEntity]),
+        RedisModule,
       ],
       providers: [UserStorage],
-    }).compile();
+    })
+    .overrideProvider(RedisService)
+    .useValue({
+      getObjectById: jest.fn().mockResolvedValue(null),
+      setObject: jest.fn().mockResolvedValue(undefined),
+      deleteObject: jest.fn().mockResolvedValue(undefined),
+    })
+    .compile();
 
     userStorage = module.get<UserStorage>(UserStorage);
     userRepository = module.get<Repository<UserEntity>>(

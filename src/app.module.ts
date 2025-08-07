@@ -9,6 +9,7 @@ import { UuidGuard } from './guards/uuid.guard';
 import { SecurityModule } from './security/security.module';
 import { HealthController } from './health/health.controller';
 import { ArticleModule } from './article/article.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   controllers: [HealthController],
@@ -25,6 +26,7 @@ import { ArticleModule } from './article/article.module';
     SecurityModule,
     UserModule,
     ArticleModule,
+    RedisModule,
   ],
 })
 export class AppModule {}
