@@ -1,0 +1,79 @@
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: knowledge_base_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: knowledge_base
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - knowledge_base_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: knowledge_base_api
+    restart: unless-stopped
+    environment:
+      env: production
+      dbHost: postgres
+      dbPort: 5432
+      dbUsername: postgres
+      dbPassword: postgres
+      dbDatabase: knowledge_base
+      port: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - knowledge_base_network
+    volumes:
+      - ./logs:/app/logs
+
+
+
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: knowledge_base_migrations
+    environment:
+      env: production
+      dbHost: postgres
+      dbPort: 5432
+      dbUsername: postgres
+      dbPassword: postgres
+      dbDatabase: knowledge_base
+    command: ["npx", "typeorm", "migration:run", "-d", "dist/typeorm/data.source.js"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - knowledge_base_network
+    restart: "no"
+
+
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  knowledge_base_network:
+    driver: bridge
