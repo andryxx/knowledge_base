@@ -6,7 +6,7 @@ import { CreateUserConfig } from '../types/create.user.config';
 import { UpdateUserConfig } from '../types/update.user.config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
-import { UserEntity } from 'typeorm/models/user.entity';
+import { UserEntity } from '@typeorm/models/user.entity';
 
 @Injectable()
 export class UserStorage {

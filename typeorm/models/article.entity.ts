@@ -36,7 +36,7 @@ export class ArticleEntity extends BaseEntity {
   @Column({ nullable: true })
   content: string;
 
-  @Column({ nullable: true, type: 'simple-array' })
+  @Column({ nullable: true, type: 'text', array: true })
   tags: string[];
 
   @Column({ type: 'enum', enum: AccessEnum })

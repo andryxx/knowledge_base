@@ -7,6 +7,7 @@ export class CreateUserDto {
     description: 'User email.',
     minLength: 1,
     maxLength: 128,
+    example: 'jim.raynor@starcraft.com',
   })
   @Transform(({ value }) => value.toLowerCase())
   @IsEmail()
@@ -17,6 +18,7 @@ export class CreateUserDto {
     description: 'User name.',
     minLength: 1,
     maxLength: 128,
+    example: 'Jim Raynor',
   })
   @IsString()
   @Length(1, 128)
@@ -26,6 +28,7 @@ export class CreateUserDto {
     description: 'User password.',
     minLength: 5,
     maxLength: 128,
+    example: 'securePassword123',
   })
   @IsString()
   @Length(5, 128)

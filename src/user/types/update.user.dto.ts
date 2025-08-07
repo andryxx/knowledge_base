@@ -6,6 +6,7 @@ export class UpdateUserDto {
     description: 'User name.',
     minLength: 1,
     maxLength: 128,
+    example: 'Jim Raynor',
   })
   @IsOptional()
   @IsString()
@@ -16,6 +17,7 @@ export class UpdateUserDto {
     description: 'User password.',
     minLength: 5,
     maxLength: 128,
+    example: 'newSecurePassword456',
   })
   @IsOptional()
   @IsString()
@@ -24,6 +26,7 @@ export class UpdateUserDto {
 
   @ApiPropertyOptional({
     description: 'User active status.',
+    example: false,
   })
   @IsOptional()
   @IsBoolean()

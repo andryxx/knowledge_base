@@ -84,7 +84,8 @@
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/$1",
-      "^typeorm/(.*)$": "<rootDir>/../typeorm/$1"
+      "^typeorm/(.*)$": "<rootDir>/../typeorm/$1",
+      "^@typeorm/(.*)$": "<rootDir>/../typeorm/$1"
     }
   }
 }

@@ -38,7 +38,7 @@ export class SearchUsersDto {
   offset = 0;
 
   @ApiPropertyOptional({
-    example: 'Kondraty',
+    example: 'Jim',
     description: 'Filter users by names.',
     type: String,
   })

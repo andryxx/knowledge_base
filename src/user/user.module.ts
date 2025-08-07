@@ -5,7 +5,7 @@ import { UserStorage } from './storage/user.storage';
 import { JwtModule } from '@nestjs/jwt';
 import { SecurityModule } from 'src/security/security.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from 'typeorm/models/user.entity';
+import { UserEntity } from '@typeorm/models/user.entity';
 
 @Module({
   controllers: [UserController],

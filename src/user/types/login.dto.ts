@@ -5,7 +5,7 @@ import { IsEmail, IsString, Length } from 'class-validator';
 export class LoginDto {
   @ApiProperty({
     description: 'User email address.',
-    example: 'admin@admin.com',
+    example: 'jim.raynor@example.com',
   })
   @IsEmail()
   @Transform(({ value }) => value.toLowerCase())
@@ -13,7 +13,7 @@ export class LoginDto {
 
   @ApiProperty({
     description: 'User password.',
-    example: 'admin',
+    example: 'securePassword123',
     minLength: 1,
   })
   @IsString()

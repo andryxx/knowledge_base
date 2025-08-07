@@ -3,14 +3,14 @@ import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { UserStorage } from './user.storage';
-import { UserEntity } from 'typeorm/models/user.entity';
-import { ArticleEntity } from 'typeorm/models/article.entity';
+import { UserEntity } from '@typeorm/models/user.entity';
+import { ArticleEntity } from '@typeorm/models/article.entity';
 import { UserDto } from '../types/user.dto';
 import { UserCredentialsDto } from '../types/user.credentials.dto';
 import { SearchUsersConfig } from '../types/search.users.config';
 import { CreateUserConfig } from '../types/create.user.config';
 import { UpdateUserConfig } from '../types/update.user.config';
-import { dataSourceOptions } from 'typeorm/data.source';
+import { dataSourceOptions } from '@typeorm/data.source';
 
 describe('UserStorage (Integration)', () => {
   let userStorage: UserStorage;
@@ -138,18 +138,16 @@ describe('UserStorage (Integration)', () => {
       };
       const allUsers = await userStorage.searchUsers(allUsersConfig);
 
-      if (allUsers.length > 1) {
-        const offsetConfig: SearchUsersConfig = {
-          limit: 99,
-          offset: 1,
-        };
-        const offsetUsers = await userStorage.searchUsers(offsetConfig);
+      const offsetConfig: SearchUsersConfig = {
+        limit: 99,
+        offset: 1,
+      };
+      const offsetUsers = await userStorage.searchUsers(offsetConfig);
 
-        expect(offsetUsers.length).toBe(allUsers.length - 1);
+      expect(offsetUsers.length).toBe(allUsers.length - 1);
 
-        if (offsetUsers.length > 0) {
-          expect(offsetUsers[0].id).not.toBe(allUsers[0].id);
-        }
+      if (offsetUsers.length > 0) {
+        expect(offsetUsers[0].id).not.toBe(allUsers[0].id);
       }
     });
 
