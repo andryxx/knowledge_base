@@ -4,7 +4,7 @@ import { ArticleDto } from '../types/article.dto';
 import { UpdateArticleConfig } from '../types/update.article.config';
 import { SearchArticlesConfig } from '../types/search.articles.config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository, ArrayOverlap, Not } from 'typeorm';
+import { ILike, Repository, ArrayOverlap, Not, Between } from 'typeorm';
 import { ArticleEntity } from '@typeorm/models/article.entity';
 import { GetFromCacheById } from 'src/redis/decorators/get.from.cache.by.id.decorator';
 import { DeleteFromCache } from 'src/redis/decorators/delete.from.cache.decorator';
@@ -44,7 +44,17 @@ export class ArticleStorage {
   }
 
   async searchArticles(config: SearchArticlesConfig): Promise<ArticleDto[]> {
-    const { limit, offset, active, access, tags, header, userId } = config;
+    const {
+      limit,
+      offset,
+      active,
+      access,
+      tags,
+      header,
+      userId,
+      createdAtFrom,
+      createdAtTo,
+    } = config;
 
     let whereConditions: any = {};
 
@@ -62,6 +72,21 @@ export class ArticleStorage {
 
     if (tags && tags.length > 0) {
       whereConditions.tags = ArrayOverlap(tags);
+    }
+
+    if (createdAtFrom || createdAtTo) {
+      const dateConditions: any = {};
+
+      if (createdAtFrom) {
+        dateConditions.createdAt = Between(
+          new Date(createdAtFrom),
+          createdAtTo ? new Date(createdAtTo) : new Date(),
+        );
+      } else if (createdAtTo) {
+        dateConditions.createdAt = Between(new Date(0), new Date(createdAtTo));
+      }
+
+      whereConditions = { ...whereConditions, ...dateConditions };
     }
 
     if (userId) {

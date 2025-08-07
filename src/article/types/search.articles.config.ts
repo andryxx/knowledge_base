@@ -8,4 +8,6 @@ export interface SearchArticlesConfig {
   tags?: string[];
   header?: string;
   userId?: string;
+  createdAtFrom?: string;
+  createdAtTo?: string;
 }

@@ -16,6 +16,11 @@ import {
   ApiOperation,
   ApiCreatedResponse,
   ApiOkResponse,
+  ApiUnauthorizedResponse,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
+  ApiParam,
+  ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { UserDto } from '../types/user.dto';
 import { SearchUsersDto } from '../types/search.users.dto';
@@ -33,10 +38,19 @@ export class UserController {
 
   private readonly logger = new Logger(UserController.name);
 
-  @ApiOperation({ description: 'Login using email and password.' })
+  @ApiOperation({
+    summary: 'User login',
+    description: 'Authenticate user with email and password to receive a session token.',
+  })
   @ApiCreatedResponse({
-    description: 'Login successful.',
+    description: 'Login successful',
     type: LoginResultDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid login credentials or user not found',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid email or password',
   })
   @Post('login')
   async login(
@@ -47,11 +61,15 @@ export class UserController {
   }
 
   @ApiOperation({
-    description: 'Search users.',
+    summary: 'Search users',
+    description: 'Search users with optional filters. Supports pagination and various search criteria.',
   })
   @ApiOkResponse({
-    description: 'Users returned.',
+    description: 'Users found successfully',
     type: [UserDto],
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not authenticated',
   })
   @UseGuards(AuthGuard)
   @Get('/search')
@@ -60,11 +78,23 @@ export class UserController {
   }
 
   @ApiOperation({
-    description: 'Get user by ID.',
+    summary: 'Get user by ID',
+    description: 'Retrieve a specific user by their unique identifier.',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'The unique identifier of the user',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiOkResponse({
-    description: 'User returned.',
+    description: 'User found successfully',
     type: UserDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not authenticated',
   })
   @UseGuards(AuthGuard)
   @Get('/:userId')
@@ -75,11 +105,21 @@ export class UserController {
   }
 
   @ApiOperation({
-    description: 'Create user.',
+    summary: 'Create user',
+    description: 'Create a new user account with the provided data.',
   })
   @ApiCreatedResponse({
-    description: 'User created.',
+    description: 'User successfully created',
     type: UserDto,
+  })
+  @ApiConflictResponse({
+    description: 'User with this email already exists',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid user data provided',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not authenticated',
   })
   @UseGuards(AuthGuard)
   @Post('/')
@@ -88,11 +128,26 @@ export class UserController {
   }
 
   @ApiOperation({
-    description: 'Update user.',
+    summary: 'Update user',
+    description: 'Update an existing user with new data. Only the provided fields will be updated.',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'The unique identifier of the user to update',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiOkResponse({
-    description: 'User updated.',
+    description: 'User successfully updated',
     type: UserDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid user data provided',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not authenticated',
   })
   @UseGuards(AuthGuard)
   @Patch('/:userId')

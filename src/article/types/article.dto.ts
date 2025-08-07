@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsEnum, IsString, Length } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsString, Length, IsUUID, IsDate, ArrayMaxSize, IsString as IsStringValidator } from 'class-validator';
 import { UserDto } from 'src/user/types/user.dto';
 import { AccessEnum } from '@typeorm/models/article.entity';
 
@@ -8,6 +8,7 @@ export class ArticleDto {
     description: 'Article object UUID.',
     example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
   })
+  @IsUUID()
   id: string;
 
   @ApiProperty({
@@ -15,6 +16,7 @@ export class ArticleDto {
     type: Date,
     example: '2025-01-07T10:30:00.000Z',
   })
+  @IsDate()
   createdAt: Date;
 
   @ApiProperty({
@@ -22,6 +24,7 @@ export class ArticleDto {
     type: Date,
     example: '2025-01-07T15:45:30.000Z',
   })
+  @IsDate()
   updatedAt: Date;
 
   @ApiProperty({
@@ -44,15 +47,22 @@ export class ArticleDto {
   @ApiProperty({
     description: 'Article content.',
     example: 'Сара Керриган - одна из самых знаковых персонажей вселенной StarCraft...',
+    minLength: 1,
+    maxLength: 10000,
   })
   @IsString()
+  @Length(1, 10000)
   content: string;
 
   @ApiProperty({
     description: 'Article tags.',
     example: ['starcraft', 'kerrigan', 'zerg', 'biography'],
+    maxItems: 50,
   })
   @IsArray()
+  @ArrayMaxSize(50)
+  @IsStringValidator({ each: true })
+  @Length(1, 50, { each: true })
   tags: string[];
 
   @ApiProperty({
@@ -67,6 +77,7 @@ export class ArticleDto {
     description: 'Article author user UUID.',
     example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   })
+  @IsUUID()
   userId: string;
 
   @ApiProperty({

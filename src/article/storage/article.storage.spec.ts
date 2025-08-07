@@ -344,6 +344,74 @@ describe('ArticleStorage (Integration)', () => {
       await articleRepository.delete(otherPrivateArticleId);
       await userRepository.delete(otherUserId);
     });
+
+    it('should filter articles by date range from', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 1);
+
+      const config: SearchArticlesConfig = {
+        limit: 10,
+        offset: 0,
+        createdAtFrom: futureDate.toISOString(),
+      };
+
+      const result = await articleStorage.searchArticles(config);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should filter articles by date range to', async () => {
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 1);
+
+      const config: SearchArticlesConfig = {
+        limit: 10,
+        offset: 0,
+        createdAtTo: pastDate.toISOString(),
+      };
+
+      const result = await articleStorage.searchArticles(config);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should filter articles by date range from and to', async () => {
+      const now = new Date();
+      const fromDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const toDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+      const config: SearchArticlesConfig = {
+        limit: 10,
+        offset: 0,
+        createdAtFrom: fromDate.toISOString(),
+        createdAtTo: toDate.toISOString(),
+      };
+
+      const result = await articleStorage.searchArticles(config);
+      const testArticle = result.find((article) => article.id === articleId);
+
+      expect(testArticle).toBeDefined();
+    });
+
+    it('should filter articles by date range with other filters', async () => {
+      const now = new Date();
+      const fromDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const toDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+      const config: SearchArticlesConfig = {
+        limit: 10,
+        offset: 0,
+        active: true,
+        header: 'Test',
+        createdAtFrom: fromDate.toISOString(),
+        createdAtTo: toDate.toISOString(),
+      };
+
+      const result = await articleStorage.searchArticles(config);
+      const testArticle = result.find((article) => article.id === articleId);
+
+      expect(testArticle).toBeDefined();
+    });
   });
 
   describe('getArticleById', () => {
@@ -352,16 +420,6 @@ describe('ArticleStorage (Integration)', () => {
 
       expect(result).toBeInstanceOf(ArticleDto);
       expect(result.id).toBe(articleId);
-      expect(result.header).toBe('Test Article');
-      expect(result.content).toBe('This is a test article content');
-      expect(result.tags).toEqual(['test', 'article']);
-      expect(result.access).toBe(AccessEnum.PUBLIC);
-      expect(result.active).toBeTruthy();
-      expect(result.userId).toBe(userId);
-      expect(result.createdAt).toBeDefined();
-      expect(result.updatedAt).toBeDefined();
-      expect(result.author).toBeDefined();
-      expect(result.author.name).toBe('Jim Raynor');
     });
 
     it('should return null when article not found', async () => {

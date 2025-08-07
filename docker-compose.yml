@@ -93,7 +93,9 @@ services:
     networks:
       - knowledge_base_network
     restart: "no"
-
+    labels:
+      - "description=Database migrations runner"
+      - "com.docker.compose.ephemeral=true"
 
 
 volumes:

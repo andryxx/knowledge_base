@@ -18,6 +18,11 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiParam,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { ArticleDto } from '../types/article.dto';
@@ -35,11 +40,15 @@ export class ArticleController {
   ) {}
 
   @ApiOperation({
-    description: 'Create article.',
+    summary: 'Create article',
+    description: 'Create a new article with the provided data.',
   })
   @ApiCreatedResponse({
-    description: 'Article created.',
+    description: 'Article successfully created',
     type: ArticleDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not authenticated',
   })
   @UseGuards(AuthGuard)
   @Post()
@@ -56,10 +65,11 @@ export class ArticleController {
   }
 
   @ApiOperation({
-    description: 'Search articles.',
+    summary: 'Search articles',
+    description: 'Search articles with optional filters. Supports pagination and various search criteria.',
   })
   @ApiOkResponse({
-    description: 'Articles found.',
+    description: 'Articles found successfully',
     type: [ArticleDto],
   })
   @Get('search')
@@ -84,11 +94,23 @@ export class ArticleController {
   }
 
   @ApiOperation({
-    description: 'Get article by ID.',
+    summary: 'Get article by ID',
+    description: 'Retrieve a specific article by its unique identifier.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: 'The unique identifier of the article',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiOkResponse({
-    description: 'Article found.',
+    description: 'Article found successfully',
     type: ArticleDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Article not found',
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have permission to access this article',
   })
   @UseGuards(ArticleAccessGuard)
   @Get(':articleId')
@@ -99,11 +121,26 @@ export class ArticleController {
   }
 
   @ApiOperation({
-    description: 'Update article.',
+    summary: 'Update article',
+    description: 'Update an existing article with new data. Only the provided fields will be updated.',
+  })
+  @ApiParam({
+    name: 'articleId',
+    description: 'The unique identifier of the article to update',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiOkResponse({
-    description: 'Article updated.',
+    description: 'Article successfully updated',
     type: ArticleDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Article not found',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not authenticated',
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have permission to update this article',
   })
   @UseGuards(AuthGuard, ArticleAccessGuard)
   @Patch(':articleId')
@@ -118,11 +155,25 @@ export class ArticleController {
   }
 
   @ApiOperation({
-    description: 'Delete article.',
+    summary: 'Delete article',
+    description: 'Permanently delete an article by its ID. This action cannot be undone.',
   })
-  @ApiOkResponse({
-    description: 'Article deleted.',
-    type: ArticleDto,
+  @ApiParam({
+    name: 'articleId',
+    description: 'The unique identifier of the article to delete',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiNoContentResponse({
+    description: 'Article successfully deleted',
+  })
+  @ApiNotFoundResponse({
+    description: 'Article not found',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not authenticated',
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have permission to delete this article',
   })
   @UseGuards(AuthGuard, ArticleAccessGuard)
   @Delete(':articleId')
