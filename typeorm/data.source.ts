@@ -14,13 +14,9 @@ export const dataSourceOptions: DataSourceOptions = {
   password: appConfig.DB.PASSWORD,
   database: appConfig.DB.DATABASE,
   entities: [`${basePath}/**/*.entity${entityExtension}`],
-  migrations: [
-    isProduction
-      ? `dist/typeorm/migrations/*${migrationExtension}`
-      : `typeorm/migrations/*${migrationExtension}`,
-  ],
+  migrations: [`typeorm/migrations/*${migrationExtension}`],
   synchronize: false,
-  logging: true,
+  logging: false,
 };
 
 export default new DataSource(dataSourceOptions);
